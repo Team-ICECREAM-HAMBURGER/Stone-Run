@@ -1,5 +1,6 @@
 import "CoreLibs/graphics"
 import "CoreLibs/sprites"
+import "CoreLibs/ui"
 
 -- Env.
 local gameSaveFile = playdate.datastore
@@ -127,6 +128,11 @@ end
 -- Update Event Func.
 function pd.update()
     gfx.sprite.update()
+
+    -- Crank Noti.
+    if pd.isCrankDocked() then
+        pd.ui.crankIndicator:draw()
+    end
 
     -- In-Game UI
     DrawWhiteTextAligned(gameScoreUItext, 10, 1, kTextAlignment.left)
