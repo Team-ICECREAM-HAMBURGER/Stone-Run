@@ -2,8 +2,10 @@ import "CoreLibs/graphics"
 import "CoreLibs/sprites"
 
 -- Env.
+local gameSaveFile = playdate.datastore
+local gameSaveData = playdate.datastore.read()
 local pd = playdate
-local gfx = pd.graphics
+local gfx = playdate.graphics
 TAG_OBSTACLE = 1
 
 -- Player
@@ -33,27 +35,69 @@ end
 -- Upper GuardRail
 local guardRailStartPosX = 200
 local guardRailStartPosYs = {10, 230}
-local upperGuardRailImage = gfx.image.new("images/guard_l.png")
-local lowerGuardRailImage = gfx.image.new("images/guard_l.png")
-local guardRailSprites = {gfx.sprite.new(upperGuardRailImage), gfx.sprite.new(lowerGuardRailImage)}
+local guardRailImage = gfx.image.new("images/guard.png")
+local guardRailSprites = {gfx.sprite.new(guardRailImage), gfx.sprite.new(guardRailImage)}
 for i = 1, #guardRailSprites do
     guardRailSprites[i]:setTag(TAG_OBSTACLE)
 end
 
 -- Game State
 local gameState = "STOPPED"
-local gameScore = 0
 local gameSpeed = 5
+local gameScore = 0
+local gameHighScore = 0
+local isHighScoreRecording = false
 
 -- Game UI
-local gameHighScoreUIText = "High Score: 0"
-local gameScoreUIText = "0"
 local gameUIPanelImage = gfx.image.new("images/panel.png")
+local gameScoreUItext = "0"
+local gameHighScoreUItext = "High Score: 0"
+local gameCommentUItexts = {"", "BEST RECORD!!", "KEEP GOING!!", "YEAHH!!", "XD", "READY?"}
+local gameStartUItext = "Press (A) to Start"
 
+
+
+-- White Text
+function DrawWhiteTextAligned(text, x, y, alignment)
+    gfx.setImageDrawMode(gfx.kDrawModeFillWhite)
+    gfx.drawTextAligned(text, x, y, alignment)
+    gfx.setImageDrawMode(gfx.kDrawModeCopy)
+end
+
+
+-- Update High Score
+local function updateHighScore(amount)
+    gameHighScore = amount
+    gameHighScoreUItext = string.format("High Score: %d", gameHighScore)
+end
+
+
+-- Update Score
+local function updateScore(amount)
+    gameScore = gameScore + amount
+    gameScoreUItext = string.format("%d", gameScore)
+
+    if gameScore > gameHighScore then
+        updateHighScore(gameScore)
+        isHighScoreRecording = true
+    end
+end
 
 
 -- Init
 local function init()
+    isHighScoreRecording = false
+    gameState = "STOPPED"
+
+    -- Load Savedata
+    if gameSaveData == nil then
+        gameSaveData = {highScore = 0}
+    else
+        gameHighScore = gameSaveData.highScore
+        updateHighScore(gameHighScore)
+    end
+
+    -- Load Sprites
     for i = 1, 2, 1 do
         roadSprites[i]:moveTo(roadStartPosXs[i], roadStartPosY)
         roadSprites[i]:add()
@@ -80,23 +124,51 @@ local function init()
 end
 
 
--- Update Score
-local function updateScore(amount)
-    gameScore = gameScore + amount
-    gameScoreUIText = string.format("%d", gameScore)
-end
-
-
 -- Update Event Func.
 function pd.update()
     gfx.sprite.update()
 
-    -- Game STOP
-    if gameState == "STOPPED" then
+    -- In-Game UI
+    DrawWhiteTextAligned(gameScoreUItext, 10, 1, kTextAlignment.left)
+    DrawWhiteTextAligned(gameHighScoreUItext, 390, 1, kTextAlignment.right)
+
+    local gameCommentIndex = 1
+
+    -- HighScore Comment
+    if isHighScoreRecording then
+        gameCommentIndex = 2
+
+        if gameScore > gameSaveData.highScore + 3 then
+            gameCommentIndex = 3
+        end
+
+        if gameScore > gameSaveData.highScore + 6 then
+            gameCommentIndex = 4
+        end
+    end
+
+    -- Gamestate Comment
+    if gameState == "OVER" then
+        isHighScoreRecording = false
+
+        gameSaveData.highScore = gameHighScore
+        gameSaveFile.write(gameSaveData)
+
+        gameCommentIndex = 5
+
+    elseif gameState == "STOPPED" then
+        isHighScoreRecording = false
+        gameCommentIndex = 6
+    end
+
+    DrawWhiteTextAligned(gameCommentUItexts[gameCommentIndex], 10, 223, kTextAlignment.left)
+
+    -- Game READY
+    if gameState == "STOPPED" or gameState == "OVER" then
         gameUIPanelImage:draw(100, 30)
-        gfx.drawTextAligned(gameHighScoreUIText, 200, 50, kTextAlignment.center)
-        gfx.drawTextAligned(gameScoreUIText, 200, 85, kTextAlignment.center)
-        gfx.drawTextAligned("Press (A) to Start", 200, 170, kTextAlignment.center)
+        gfx.drawTextAligned(gameHighScoreUItext, 200, 50, kTextAlignment.center)
+        gfx.drawTextAligned(gameScoreUItext, 200, 85, kTextAlignment.center)
+        gfx.drawTextAligned(gameStartUItext, 200, 170, kTextAlignment.center)
 
         -- Game START
         if pd.buttonJustPressed(pd.kButtonA) then
@@ -104,6 +176,8 @@ function pd.update()
 
             updateScore(-gameScore)
             gameSpeed = 5
+
+            isHighScoreRecording = false
 
             playerSprite:moveTo(playerStartPosX, playerStartPosY)
             obstacleSprite:moveTo(obstacleStartPosX, math.random(40, 200))
@@ -115,7 +189,7 @@ function pd.update()
 
     -- Game UPDATE
     elseif gameState == "ACTIVE" then
-        local crankPosition = pd.getCrankPosition() -- Clockwise; 0 ~ 270
+        local crankPosition = pd.getCrankPosition()
         local playerPosYoffset = (crankPosition <= 90 or crankPosition >= 270) and -playerSpeed or playerSpeed
         local _, _, playerCollisions, _ = playerSprite:moveWithCollisions(playerSprite.x, playerSprite.y + playerPosYoffset)
 
@@ -150,7 +224,7 @@ function pd.update()
                 local otherTag = collision.other:getTag()
 
                 if otherTag == TAG_OBSTACLE then
-                    gameState = "STOPPED"
+                    gameState = "OVER"
                 end
             end
         end
