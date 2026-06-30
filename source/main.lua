@@ -33,7 +33,7 @@ end
 -- Upper GuardRail
 local guardRailStartPosX = 200
 local guardRailStartPosYs = {10, 230}
-local upperGuardRailImage = gfx.image.new("images/guard_u.png")
+local upperGuardRailImage = gfx.image.new("images/guard_l.png")
 local lowerGuardRailImage = gfx.image.new("images/guard_l.png")
 local guardRailSprites = {gfx.sprite.new(upperGuardRailImage), gfx.sprite.new(lowerGuardRailImage)}
 for i = 1, #guardRailSprites do
@@ -46,7 +46,8 @@ local gameScore = 0
 local gameSpeed = 5
 
 -- Game UI
-local gameScoreUIText = "Score: 0"
+local gameHighScoreUIText = "High Score: 0"
+local gameScoreUIText = "0"
 local gameUIPanelImage = gfx.image.new("images/panel.png")
 
 
@@ -82,7 +83,7 @@ end
 -- Update Score
 local function updateScore(amount)
     gameScore = gameScore + amount
-    gameScoreUIText = string.format("Score: %d", gameScore)
+    gameScoreUIText = string.format("%d", gameScore)
 end
 
 
@@ -92,9 +93,10 @@ function pd.update()
 
     -- Game STOP
     if gameState == "STOPPED" then
-        gameUIPanelImage:draw(100, 20)
-        gfx.drawTextAligned("Press A to Start", 200, 40, kTextAlignment.center)
-        gfx.drawTextAligned(gameScoreUIText, 200, 70, kTextAlignment.center)
+        gameUIPanelImage:draw(100, 30)
+        gfx.drawTextAligned(gameHighScoreUIText, 200, 50, kTextAlignment.center)
+        gfx.drawTextAligned(gameScoreUIText, 200, 85, kTextAlignment.center)
+        gfx.drawTextAligned("Press (A) to Start", 200, 170, kTextAlignment.center)
 
         -- Game START
         if pd.buttonJustPressed(pd.kButtonA) then
