@@ -7,6 +7,7 @@ local gameSaveFile = playdate.datastore
 local gameSaveData = playdate.datastore.read()
 local pd = playdate
 local gfx = playdate.graphics
+local pui = playdate.ui
 TAG_OBSTACLE = 1
 
 -- Player
@@ -131,7 +132,7 @@ function pd.update()
 
     -- Crank Noti.
     if pd.isCrankDocked() then
-        pd.ui.crankIndicator:draw()
+        pui.crankIndicator:draw()
     end
 
     -- In-Game UI
