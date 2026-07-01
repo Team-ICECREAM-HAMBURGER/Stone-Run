@@ -1,7 +1,7 @@
-name=RUN
+name=Stone Run
 author=Priv
 description=The premier rock dodging high score chaser
 bundleID=com.priv.StoneRun
-version=1.1.2
+version=1.2.0
 buildNumber=1
 imagePath=images/launcher

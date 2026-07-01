@@ -8,7 +8,9 @@ local gameSaveData = playdate.datastore.read()
 local pd = playdate
 local gfx = playdate.graphics
 local pui = playdate.ui
+local sfx = playdate.sound
 TAG_OBSTACLE = 1
+TAG_ITEM = 2
 
 -- Player
 local playerStartPosX = 40
@@ -23,6 +25,13 @@ local obstacleStartPosY = 240
 local obstacleImage = gfx.image.new("images/rock.png")
 local obstacleSprite = gfx.sprite.new(obstacleImage)
 obstacleSprite:setTag(TAG_OBSTACLE)
+
+-- Item
+local itemStartPosX = 450
+local itemStartPosY = 240
+local itemImage = gfx.image.new("images/item.png")
+local itemSprite = gfx.sprite.new(itemImage)
+itemSprite:setTag(TAG_ITEM)
 
 -- Road
 local roadStartPosXs = {200, 644}
@@ -57,7 +66,10 @@ local gameHighScoreUItext = "High Score: 0"
 local gameCommentUItexts = {"", "BEST RECORD!!", "KEEP GOING!!", "YEAHH!!", "XD", "READY?"}
 local gameStartUItext = "Press (A) to Start"
 
-
+-- SFX
+local crashSound = sfx.sampleplayer.new("sounds/crash")
+local itemGetSound = sfx.sampleplayer.new("sounds/itemGet")
+local carEngineSound = sfx.fileplayer.new("sounds/engine_loop")
 
 -- White Text
 function DrawWhiteTextAligned(text, x, y, alignment)
@@ -123,6 +135,12 @@ local function init()
     obstacleSprite.collisionResponse = gfx.sprite.kCollisionTypeOverlap
     obstacleSprite:setCollideRect(0, 0, 48, 48)
     obstacleSprite:setZIndex(2)
+
+    itemSprite:moveTo(itemStartPosX, itemStartPosY)
+    itemSprite:add()
+    itemSprite.collisionResponse = gfx.sprite.kCollisionTypeOverlap
+    itemSprite:setCollideRect(0, 0, 20, 20)
+    itemSprite:setZIndex(2)
 end
 
 
@@ -188,6 +206,7 @@ function pd.update()
 
             playerSprite:moveTo(playerStartPosX, playerStartPosY)
             obstacleSprite:moveTo(obstacleStartPosX, math.random(40, 200))
+            itemSprite:moveBy(itemStartPosX, math.random(40, 200))
 
             for i = 1, 2, 1 do
                 roadSprites[i]:moveTo(roadStartPosXs[i], roadStartPosY)
@@ -224,7 +243,18 @@ function pd.update()
             end
         end
 
-        -- Gameover;
+        -- item movement
+        itemSprite:moveWithCollisions(itemSprite.x - gameSpeed, itemSprite.y)
+
+        -- item reset
+        if itemSprite.x < -80 then
+            itemSprite:moveTo(itemStartPosX, math.random(40, 200))
+        end
+
+        -- engine SFX
+        carEngineSound:play(0)
+
+        -- Collision check
         if playerCollisions and #playerCollisions > 0 then
             for i = 1, #playerCollisions do
                 local collision = playerCollisions[i]
@@ -232,6 +262,15 @@ function pd.update()
 
                 if otherTag == TAG_OBSTACLE then
                     gameState = "OVER"
+
+                    crashSound:play()
+                    carEngineSound:stop()
+                elseif otherTag == TAG_ITEM then
+                    updateScore(2)
+                    gameSpeed = gameSpeed + 0.2
+
+                    itemSprite:moveTo(itemStartPosX, math.random(40, 200))
+                    itemGetSound:play()
                 end
             end
         end
