@@ -121,14 +121,14 @@ local function init()
         guardRailSprites[i]:add()
         guardRailSprites[i].collisionResponse = gfx.sprite.kCollisionTypeOverlap
         guardRailSprites[i]:setCollideRect(0, 0, 400, 20)
-        guardRailSprites[i]:setZIndex(2)
+        guardRailSprites[i]:setZIndex(3)
     end
 
     playerSprite:moveTo(playerStartPosX, playerStartPosY)
     playerSprite:add()
     playerSprite.collisionResponse = gfx.sprite.kCollisionTypeOverlap
     playerSprite:setCollideRect(0, 0, 28, 26)
-    playerSprite:setZIndex(1)
+    playerSprite:setZIndex(2)
 
     obstacleSprite:moveTo(obstacleStartPosX, obstacleStartPosY)
     obstacleSprite:add()
@@ -216,7 +216,7 @@ function pd.update()
     -- Game UPDATE
     elseif gameState == "ACTIVE" then
         local crankPosition = pd.getCrankPosition()
-        local playerPosYoffset = (crankPosition <= 90 or crankPosition >= 270) and -playerSpeed or playerSpeed
+        local playerPosYoffset = (crankPosition <= 85 or crankPosition >= 265) and -playerSpeed or playerSpeed
         local _, _, playerCollisions, _ = playerSprite:moveWithCollisions(playerSprite.x, playerSprite.y + playerPosYoffset)
 
         -- obstacle movement
