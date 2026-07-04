@@ -15,7 +15,7 @@ Your car accelerates every second. Try to beat your high score! <br><br>
 
 ## License
 
-This project is licensed under the **Creative Commons Attribution-NonCommercial 4.0 International License (CC BY-NC 4.0)**.
+This project is licensed under the **Creative Commons Attribution-NonCommercial 4.0 International License (CC BY-NC 4.0)** & MIT License.
 
 You are free to:
 * **Share** — copy and redistribute the material in any medium or format.
