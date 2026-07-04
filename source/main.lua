@@ -175,10 +175,6 @@ function pd.update()
     -- Gamestate Comment
     if gameState == "OVER" then
         isHighScoreRecording = false
-
-        gameSaveData.highScore = gameHighScore
-        gameSaveFile.write(gameSaveData)
-
         gameCommentIndex = 5
 
     elseif gameState == "STOPPED" then
@@ -194,6 +190,11 @@ function pd.update()
         gfx.drawTextAligned(gameHighScoreUItext, 200, 50, kTextAlignment.center)
         gfx.drawTextAligned(gameScoreUItext, 200, 85, kTextAlignment.center)
         gfx.drawTextAligned(gameStartUItext, 200, 170, kTextAlignment.center)
+
+        if gameSaveData.highScore < gameHighScore then
+            gameSaveData.highScore = gameHighScore
+            gameSaveFile.write(gameSaveData)
+        end
 
         -- Game START
         if pd.buttonJustPressed(pd.kButtonA) then
@@ -211,6 +212,9 @@ function pd.update()
             for i = 1, 2, 1 do
                 roadSprites[i]:moveTo(roadStartPosXs[i], roadStartPosY)
             end
+
+            -- engine SFX
+            carEngineSound:play(0)
         end
 
     -- Game UPDATE
@@ -250,9 +254,6 @@ function pd.update()
         if itemSprite.x < -80 then
             itemSprite:moveTo(itemStartPosX, math.random(40, 200))
         end
-
-        -- engine SFX
-        carEngineSound:play(0)
 
         -- Collision check
         if playerCollisions and #playerCollisions > 0 then
