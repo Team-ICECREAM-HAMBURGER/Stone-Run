@@ -71,6 +71,8 @@ local crashSound = sfx.sampleplayer.new("sounds/crash")
 local itemGetSound = sfx.sampleplayer.new("sounds/itemGet")
 local carEngineSound = sfx.fileplayer.new("sounds/engine_loop")
 
+
+
 -- White Text
 function DrawWhiteTextAligned(text, x, y, alignment)
     gfx.setImageDrawMode(gfx.kDrawModeFillWhite)
@@ -191,11 +193,6 @@ function pd.update()
         gfx.drawTextAligned(gameScoreUItext, 200, 85, kTextAlignment.center)
         gfx.drawTextAligned(gameStartUItext, 200, 170, kTextAlignment.center)
 
-        if gameSaveData.highScore < gameHighScore then
-            gameSaveData.highScore = gameHighScore
-            gameSaveFile.write(gameSaveData)
-        end
-
         -- Game START
         if pd.buttonJustPressed(pd.kButtonA) then
             gameState = "ACTIVE"
@@ -278,6 +275,14 @@ function pd.update()
     end
 end
 
+
+-- Game Quit()
+function pd.gameWillTerminate()
+    if gameSaveData.highScore < gameHighScore then
+        gameSaveData.highScore = gameHighScore
+        gameSaveFile.write(gameSaveData)
+    end
+end
 
 
 
